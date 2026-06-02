@@ -12,7 +12,10 @@ React + TypeScript + Vite + Supabase + Cloudflare Pages 向けの予想アプリ
    - `002_rls_policies.sql`
    - `003_seed_data.sql`
 3. Authentication で Email ログインを有効化
-4. 最初の管理者: ユーザー登録後、SQL で role を更新:
+4. **新規ユーザーは管理者が Supabase Dashboard から追加する**（アプリ画面からの新規登録は不可）:
+   - Authentication → Users → **Add user**
+   - メールとパスワードを設定して作成（`profiles` はサインアップ時トリガーで自動作成）
+5. 最初の管理者: ユーザー追加後、SQL で role を更新:
 
 ```sql
 update profiles set role = 'admin' where email = 'your@email.com';

@@ -8,7 +8,6 @@ export function LoginPage() {
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [mode, setMode] = useState<'login' | 'signup'>('login')
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -21,20 +20,15 @@ export function LoginPage() {
     setLoading(true)
     setError(null)
 
-    const result =
-      mode === 'login'
-        ? await supabase.auth.signInWithPassword({ email, password })
-        : await supabase.auth.signUp({ email, password })
+    const { error: signInError } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    })
 
     setLoading(false)
 
-    if (result.error) {
-      setError(result.error.message)
-      return
-    }
-
-    if (mode === 'signup' && !result.data.session) {
-      setError('確認メールを送信しました。メールのリンクからログインしてください。')
+    if (signInError) {
+      setError(signInError.message)
       return
     }
 
@@ -67,23 +61,14 @@ export function LoginPage() {
               onChange={(e) => setPassword(e.target.value)}
               required
               minLength={6}
-              autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+              autoComplete="current-password"
             />
           </div>
           {error && <p className="error">{error}</p>}
           <button type="submit" disabled={loading}>
-            {loading ? '処理中…' : mode === 'login' ? 'ログイン' : '新規登録'}
+            {loading ? '処理中…' : 'ログイン'}
           </button>
         </form>
-        <p style={{ marginTop: '1rem' }}>
-          <button
-            type="button"
-            className="secondary"
-            onClick={() => setMode(mode === 'login' ? 'signup' : 'login')}
-          >
-            {mode === 'login' ? '初めての方は新規登録' : 'ログインに戻る'}
-          </button>
-        </p>
       </div>
     </div>
   )
