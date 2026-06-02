@@ -2,6 +2,12 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ConfirmModal } from '../components/ConfirmModal'
 import { getActiveTournament } from '../lib/auth'
+import {
+  formatDateTime,
+  getTimeUntilDeadline,
+  isDeadlinePassed,
+} from '../lib/date'
+import { formatMatchPredictionText } from '../lib/matches'
 import { supabase } from '../lib/supabaseClient'
 import { useAppOutletContext } from '../hooks/useOutletContext'
 import { RESULT_LABELS, STAGE_LABELS } from '../types/app'
@@ -22,11 +28,16 @@ export function MatchPredictionPage() {
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [now, setNow] = useState(Date.now())
 
   const selectedMatch = matches.find((m) => m.id === selectedMatchId)
   const deadlinePassed =
-    selectedMatch != null &&
-    new Date(selectedMatch.prediction_deadline) <= new Date()
+    selectedMatch != null && isDeadlinePassed(selectedMatch.prediction_deadline, now)
+
+  useEffect(() => {
+    const timer = setInterval(() => setNow(Date.now()), 60_000)
+    return () => clearInterval(timer)
+  }, [])
 
   useEffect(() => {
     async function load() {
@@ -120,16 +131,6 @@ export function MatchPredictionPage() {
     })
   }
 
-  function formatPrediction(pred: MatchPrediction, match: Match) {
-    const base = `日本 ${pred.japan_score_prediction} - ${pred.opponent_score_prediction} ${match.opponent_team_name} / ${RESULT_LABELS[pred.predicted_result]}`
-    if (pred.predict_penalty && pred.penalty_winner) {
-      const winner =
-        pred.penalty_winner === 'japan' ? '日本' : match.opponent_team_name
-      return `${base}（PK後の勝者：${winner}）`
-    }
-    return base
-  }
-
   if (loading) return <p>読み込み中…</p>
 
   if (matches.length === 0) {
@@ -166,16 +167,25 @@ export function MatchPredictionPage() {
 
       {selectedMatch && (
         <>
-          <p className="muted">
-            締切: {new Date(selectedMatch.prediction_deadline).toLocaleString('ja-JP')}
-          </p>
+          <div className="deadline-banner">
+            <p>
+              <strong>予想締切：</strong>
+              {formatDateTime(selectedMatch.prediction_deadline)}
+            </p>
+            <p>
+              <strong>締切まで：</strong>
+              {getTimeUntilDeadline(selectedMatch.prediction_deadline, now)}
+            </p>
+          </div>
 
           {existingPred ? (
             <>
               <p>
                 あなたの予想：
                 <br />
-                <strong>{formatPrediction(existingPred, selectedMatch)}</strong>
+                <strong>
+                  {formatMatchPredictionText(existingPred, selectedMatch)}
+                </strong>
               </p>
               <p className="muted">
                 この予想はすでに提出済みです。提出後の変更はできません。
@@ -185,9 +195,7 @@ export function MatchPredictionPage() {
             <p>予想受付は終了しました。あなたはこの試合の予想を提出していません。</p>
           ) : (
             <>
-              <h3>
-                日本 vs {selectedMatch.opponent_team_name}
-              </h3>
+              <h3>日本 vs {selectedMatch.opponent_team_name}</h3>
               <div className="form-row">
                 <label htmlFor="japan">日本の得点</label>
                 <input

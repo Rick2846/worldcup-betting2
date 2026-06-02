@@ -164,3 +164,28 @@ label {
 .team-option input {
   margin-right: 0.5rem;
 }
+
+.match-meta-list {
+  margin: 0 0 1rem;
+  padding-left: 1.25rem;
+  color: #334155;
+}
+
+.match-meta-list li {
+  margin-bottom: 0.25rem;
+}
+
+.deadline-banner {
+  background: #f1f5f9;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+}
+
+.deadline-banner p {
+  margin: 0.25rem 0;
+}
+
+.match-section {
+  margin-bottom: 1.25rem;
+}

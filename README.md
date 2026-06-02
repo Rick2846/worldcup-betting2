@@ -11,6 +11,7 @@ React + TypeScript + Vite + Supabase + Cloudflare Pages 向けの予想アプリ
    - `001_create_tables.sql`
    - `002_rls_policies.sql`
    - `003_seed_data.sql`
+   - `004_match_predictions_select_policy.sql`（締切前は他人の日本戦予想を非公開）
 3. Authentication で Email ログインを有効化
 4. **新規ユーザーは管理者が Supabase Dashboard から追加する**（アプリ画面からの新規登録は不可）:
    - Authentication → Users → **Add user**

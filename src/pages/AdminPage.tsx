@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Navigate } from 'react-router-dom'
 import { getActiveTournament } from '../lib/auth'
+import { getDefaultPredictionDeadline } from '../lib/date'
 import { supabase } from '../lib/supabaseClient'
 import { useAppOutletContext } from '../hooks/useOutletContext'
 import { RESULT_LABELS } from '../types/app'
@@ -26,6 +27,7 @@ export function AdminPage() {
   const [stage, setStage] = useState<MatchStage>('group')
   const [matchDatetime, setMatchDatetime] = useState('')
   const [predictionDeadline, setPredictionDeadline] = useState('')
+  const [deadlineTouched, setDeadlineTouched] = useState(false)
   const [isKnockout, setIsKnockout] = useState(false)
 
   const [resultMatchId, setResultMatchId] = useState('')
@@ -104,6 +106,9 @@ export function AdminPage() {
     else {
       setMessage('試合を追加しました')
       setOpponentName('')
+      setMatchDatetime('')
+      setPredictionDeadline('')
+      setDeadlineTouched(false)
       await reload()
     }
   }
@@ -219,7 +224,13 @@ export function AdminPage() {
             <input
               type="datetime-local"
               value={matchDatetime}
-              onChange={(e) => setMatchDatetime(e.target.value)}
+              onChange={(e) => {
+                const value = e.target.value
+                setMatchDatetime(value)
+                if (!deadlineTouched) {
+                  setPredictionDeadline(getDefaultPredictionDeadline(value))
+                }
+              }}
               required
             />
           </div>
@@ -228,9 +239,15 @@ export function AdminPage() {
             <input
               type="datetime-local"
               value={predictionDeadline}
-              onChange={(e) => setPredictionDeadline(e.target.value)}
+              onChange={(e) => {
+                setPredictionDeadline(e.target.value)
+                setDeadlineTouched(true)
+              }}
               required
             />
+            <p className="muted">
+              試合日時を入力すると、デフォルトで試合開始の1日前に設定されます。
+            </p>
           </div>
           <div className="form-row">
             <label>
