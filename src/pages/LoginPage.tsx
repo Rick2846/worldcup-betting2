@@ -7,6 +7,8 @@ export function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
+  const [sendingRecovery, setSendingRecovery] = useState(false)
+  const [recoverySent, setRecoverySent] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -33,6 +35,30 @@ export function LoginPage() {
     }
 
     navigate('/', { replace: true })
+  }
+
+  async function handleForgotPassword() {
+    if (!email.trim()) {
+      setError('メールアドレスを入力してから「再設定メールを送る」を押してください')
+      return
+    }
+    setSendingRecovery(true)
+    setError(null)
+    setRecoverySent(false)
+
+    const { error: recoveryError } = await supabase.auth.resetPasswordForEmail(
+      email.trim(),
+      { redirectTo: `${window.location.origin}/reset-password` },
+    )
+
+    setSendingRecovery(false)
+
+    if (recoveryError) {
+      setError(recoveryError.message)
+      return
+    }
+
+    setRecoverySent(true)
   }
 
   return (
@@ -69,6 +95,21 @@ export function LoginPage() {
             {loading ? '処理中…' : 'ログイン'}
           </button>
         </form>
+        <p style={{ marginTop: '1rem' }}>
+          <button
+            type="button"
+            className="secondary"
+            disabled={sendingRecovery}
+            onClick={handleForgotPassword}
+          >
+            {sendingRecovery ? '送信中…' : 'パスワード再設定メールを送る'}
+          </button>
+        </p>
+        {recoverySent && (
+          <p className="muted">
+            再設定用のメールを送信しました。メール内のリンクから新しいパスワードを設定してください。
+          </p>
+        )}
       </div>
     </div>
   )

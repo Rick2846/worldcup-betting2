@@ -5,6 +5,7 @@ import { ChampionPredictionPage } from './pages/ChampionPredictionPage'
 import { ChampionPredictionsListPage } from './pages/ChampionPredictionsListPage'
 import { HomePage } from './pages/HomePage'
 import { LoginPage } from './pages/LoginPage'
+import { ResetPasswordPage } from './pages/ResetPasswordPage'
 import { MatchPredictionPage } from './pages/MatchPredictionPage'
 import { MatchPredictionsListPage } from './pages/MatchPredictionsListPage'
 import { RankingPage } from './pages/RankingPage'
@@ -14,6 +15,7 @@ export default function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route element={<ProtectedRoute />}>
           <Route path="/" element={<HomePage />} />
           <Route path="/champion" element={<ChampionPredictionPage />} />

@@ -13,10 +13,16 @@ React + TypeScript + Vite + Supabase + Cloudflare Pages 向けの予想アプリ
    - `003_seed_data.sql`
    - `004_match_predictions_select_policy.sql`（締切前は他人の日本戦予想を非公開）
 3. Authentication で Email ログインを有効化
-4. **新規ユーザーは管理者が Supabase Dashboard から追加する**（アプリ画面からの新規登録は不可）:
+4. **URL Configuration**（パスワード再設定メール用）:
+   - **Site URL**: `https://worldcup-betting.pages.dev`（本番の URL）
+   - **Redirect URLs** に以下を追加:
+     - `https://worldcup-betting.pages.dev/reset-password`
+     - `http://localhost:5173/reset-password`（ローカル開発用）
+5. **パスワード変更**: Dashboard の「Send password recovery」または、ログイン画面の「パスワード再設定メールを送る」→ メールのリンク → `/reset-password` で新パスワードを保存
+6. **新規ユーザーは管理者が Supabase Dashboard から追加する**（アプリ画面からの新規登録は不可）:
    - Authentication → Users → **Add user**
    - メールとパスワードを設定して作成（`profiles` はサインアップ時トリガーで自動作成）
-5. 最初の管理者: ユーザー追加後、SQL で role を更新:
+7. 最初の管理者: ユーザー追加後、SQL で role を更新:
 
 ```sql
 update profiles set role = 'admin' where email = 'your@email.com';
