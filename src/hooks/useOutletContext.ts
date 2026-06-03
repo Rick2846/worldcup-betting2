@@ -5,6 +5,7 @@ import type { Profile } from '../types/database'
 export interface AppOutletContext {
   profile: Profile
   session: Session
+  refreshProfile: () => Promise<void>
 }
 
 export function useAppOutletContext() {

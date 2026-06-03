@@ -54,5 +54,13 @@ export function ProtectedRoute() {
     )
   }
 
-  return <Layout profile={profile} session={session} />
+  async function refreshProfile() {
+    if (!session?.user) return
+    const next = await getProfile(session.user.id)
+    if (next) setProfile(next)
+  }
+
+  return (
+    <Layout profile={profile} session={session} refreshProfile={refreshProfile} />
+  )
 }

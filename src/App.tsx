@@ -8,6 +8,7 @@ import { LoginPage } from './pages/LoginPage'
 import { ResetPasswordPage } from './pages/ResetPasswordPage'
 import { MatchPredictionPage } from './pages/MatchPredictionPage'
 import { MatchPredictionsListPage } from './pages/MatchPredictionsListPage'
+import { ProfilePage } from './pages/ProfilePage'
 import { RankingPage } from './pages/RankingPage'
 
 export default function App() {
@@ -23,6 +24,7 @@ export default function App() {
           <Route path="/matches" element={<MatchPredictionPage />} />
           <Route path="/matches/list" element={<MatchPredictionsListPage />} />
           <Route path="/ranking" element={<RankingPage />} />
+          <Route path="/profile" element={<ProfilePage />} />
           <Route path="/admin" element={<AdminPage />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
