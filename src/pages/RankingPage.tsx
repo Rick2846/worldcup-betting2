@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { getActiveTournament } from '../lib/auth'
 import { buildRanking } from '../lib/ranking'
+import { SITE_CATCHCOPY } from '../constants/branding'
 import { EmptyState } from '../components/ui/EmptyState'
 import { LoadingState } from '../components/ui/LoadingState'
 import { PageHeader } from '../components/ui/PageHeader'
@@ -42,7 +43,7 @@ export function RankingPage() {
     <>
       <PageHeader
         title="ランキング"
-        description="4イナム獲得するのは誰だ — 現在の順位表"
+        description={`${SITE_CATCHCOPY} — 現在の順位表`}
       />
 
       {ranking.length === 0 ? (
