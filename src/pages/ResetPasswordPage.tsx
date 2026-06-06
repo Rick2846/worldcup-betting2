@@ -1,5 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { AuthShell } from '../components/AuthShell'
+import { Alert } from '../components/ui/Alert'
+import { LoadingState } from '../components/ui/LoadingState'
 import { supabase } from '../lib/supabaseClient'
 
 export function ResetPasswordPage() {
@@ -82,44 +85,43 @@ export function ResetPasswordPage() {
 
   if (invalidLink) {
     return (
-      <div className="container">
-        <div className="card" style={{ maxWidth: 400, margin: '2rem auto' }}>
-          <h1>パスワード再設定</h1>
-          <p className="error">
+      <AuthShell subtitle="パスワード再設定">
+        <div className="card">
+          <h2>リンクが無効です</h2>
+          <Alert variant="error">
             リンクが無効か期限切れです。もう一度パスワード再設定メールを送信してください。
-          </p>
-          <p>
-            <Link to="/login">ログイン画面へ</Link>
-          </p>
+          </Alert>
+          <Link to="/login" className="btn link-arrow">
+            ログイン画面へ
+          </Link>
         </div>
-      </div>
+      </AuthShell>
     )
   }
 
   if (!ready) {
     return (
-      <div className="container">
-        <p>リンクを確認中…</p>
-      </div>
+      <AuthShell subtitle="パスワード再設定">
+        <LoadingState label="リンクを確認中…" />
+      </AuthShell>
     )
   }
 
   if (done) {
     return (
-      <div className="container">
-        <div className="card" style={{ maxWidth: 400, margin: '2rem auto' }}>
-          <h1>パスワードを更新しました</h1>
+      <AuthShell subtitle="パスワード再設定">
+        <div className="card card--submitted">
+          <h2>パスワードを更新しました</h2>
           <p className="muted">トップページへ移動します…</p>
         </div>
-      </div>
+      </AuthShell>
     )
   }
 
   return (
-    <div className="container">
-      <div className="card" style={{ maxWidth: 400, margin: '2rem auto' }}>
-        <h1>新しいパスワード</h1>
-        <p className="muted">新しいパスワードを入力して保存してください。</p>
+    <AuthShell subtitle="新しいパスワードを設定">
+      <div className="card">
+        <h2>新しいパスワード</h2>
         <form onSubmit={handleSubmit}>
           <div className="form-row">
             <label htmlFor="new-password">新しいパスワード</label>
@@ -145,15 +147,17 @@ export function ResetPasswordPage() {
               autoComplete="new-password"
             />
           </div>
-          {error && <p className="error">{error}</p>}
-          <button type="submit" disabled={loading}>
+          {error && <Alert variant="error">{error}</Alert>}
+          <button type="submit" disabled={loading} style={{ width: '100%' }}>
             {loading ? '保存中…' : 'パスワードを保存'}
           </button>
         </form>
         <p style={{ marginTop: '1rem' }}>
-          <Link to="/login">ログイン画面へ</Link>
+          <Link to="/login" className="link-arrow">
+            ログイン画面へ
+          </Link>
         </p>
       </div>
-    </div>
+    </AuthShell>
   )
 }

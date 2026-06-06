@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { useAppOutletContext } from '../hooks/useOutletContext'
 import { supabase } from '../lib/supabaseClient'
+import { Alert } from '../components/ui/Alert'
+import { PageHeader } from '../components/ui/PageHeader'
 
 export function ProfilePage() {
   const { profile, refreshProfile } = useAppOutletContext()
@@ -42,31 +44,34 @@ export function ProfilePage() {
   }
 
   return (
-    <div className="card">
-      <h2>表示名の設定</h2>
-      <p className="muted">
-        ランキングや予想一覧に表示される名前です。メールアドレスの一部ではなく、呼び名を設定してください。
-      </p>
-      <form onSubmit={handleSubmit}>
-        <div className="form-row">
-          <label htmlFor="display-name">表示名</label>
-          <input
-            id="display-name"
-            type="text"
-            value={displayName}
-            onChange={(e) => setDisplayName(e.target.value)}
-            maxLength={30}
-            required
-            placeholder="例: 太郎"
-          />
-        </div>
-        <p className="muted">現在: {profile.display_name}</p>
-        {error && <p className="error">{error}</p>}
-        {message && <p className="muted">{message}</p>}
-        <button type="submit" disabled={loading}>
-          {loading ? '保存中…' : '保存する'}
-        </button>
-      </form>
-    </div>
+    <>
+      <PageHeader
+        title="表示名の設定"
+        description="ランキングや予想一覧に表示される名前です"
+      />
+
+      <div className="card">
+        <form onSubmit={handleSubmit}>
+          <div className="form-row">
+            <label htmlFor="display-name">表示名</label>
+            <input
+              id="display-name"
+              type="text"
+              value={displayName}
+              onChange={(e) => setDisplayName(e.target.value)}
+              maxLength={30}
+              required
+              placeholder="例: 太郎"
+            />
+          </div>
+          <p className="muted">現在: {profile.display_name}</p>
+          {error && <Alert variant="error">{error}</Alert>}
+          {message && <Alert variant="success">{message}</Alert>}
+          <button type="submit" disabled={loading}>
+            {loading ? '保存中…' : '保存する'}
+          </button>
+        </form>
+      </div>
+    </>
   )
 }

@@ -1,6 +1,11 @@
 import { useEffect, useState } from 'react'
 import { getActiveTournament } from '../lib/auth'
 import { supabase } from '../lib/supabaseClient'
+import { Alert } from '../components/ui/Alert'
+import { Badge } from '../components/ui/Badge'
+import { EmptyState } from '../components/ui/EmptyState'
+import { LoadingState } from '../components/ui/LoadingState'
+import { PageHeader } from '../components/ui/PageHeader'
 import type { Profile, Team } from '../types/database'
 
 interface ListRow {
@@ -60,28 +65,43 @@ export function ChampionPredictionsListPage() {
     load()
   }, [])
 
-  if (loading) return <p>読み込み中…</p>
-  if (error) return <p className="error">{error}</p>
+  if (loading) return <LoadingState />
+  if (error) return <Alert variant="error">{error}</Alert>
 
   return (
-    <div className="card">
-      <h2>優勝国予想一覧</h2>
-      <table className="list-table">
-        <thead>
-          <tr>
-            <th>名前</th>
-            <th>予想</th>
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map(({ profile, teamName }) => (
-            <tr key={profile.id}>
-              <td>{profile.display_name}</td>
-              <td>{teamName ?? '未提出'}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+    <>
+      <PageHeader title="優勝国予想一覧" description="メンバー全員の優勝国予想" />
+
+      <div className="card">
+        {rows.length === 0 ? (
+          <EmptyState title="メンバーがいません" />
+        ) : (
+          <div className="table-wrap">
+            <table className="list-table">
+              <thead>
+                <tr>
+                  <th>名前</th>
+                  <th>予想</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map(({ profile, teamName }) => (
+                  <tr key={profile.id}>
+                    <td>{profile.display_name}</td>
+                    <td>
+                      {teamName ? (
+                        <Badge variant="default">{teamName}</Badge>
+                      ) : (
+                        <Badge variant="muted">未提出</Badge>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    </>
   )
 }

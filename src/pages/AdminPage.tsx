@@ -4,6 +4,8 @@ import { getActiveTournament } from '../lib/auth'
 import { getDefaultPredictionDeadline } from '../lib/date'
 import { supabase } from '../lib/supabaseClient'
 import { useAppOutletContext } from '../hooks/useOutletContext'
+import { Alert } from '../components/ui/Alert'
+import { PageHeader } from '../components/ui/PageHeader'
 import { RESULT_LABELS } from '../types/app'
 import type {
   Match,
@@ -181,20 +183,23 @@ export function AdminPage() {
 
   return (
     <>
-      <div className="card">
-        <h2>管理者ページ</h2>
-        {message && <p className="muted">{message}</p>}
-        {error && <p className="error">{error}</p>}
-      </div>
+      <PageHeader title="管理者ページ" description="試合・結果・ポイントの管理" />
 
-      <div className="card">
+      {(message || error) && (
+        <div className="card admin-section">
+          {message && <Alert variant="success">{message}</Alert>}
+          {error && <Alert variant="error">{error}</Alert>}
+        </div>
+      )}
+
+      <div className="card admin-section">
         <h2>チーム設定ポイント</h2>
         {teams.map((team) => (
           <TeamPointsRow key={team.id} team={team} onSave={updateTeamPoints} />
         ))}
       </div>
 
-      <div className="card">
+      <div className="card admin-section">
         <h2>日本戦の追加</h2>
         <form onSubmit={addMatch}>
           <div className="form-row">
@@ -250,12 +255,12 @@ export function AdminPage() {
             </p>
           </div>
           <div className="form-row">
-            <label>
+            <label className="checkbox-label">
               <input
                 type="checkbox"
                 checked={isKnockout}
                 onChange={(e) => setIsKnockout(e.target.checked)}
-              />{' '}
+              />
               ノックアウト（PK予想可）
             </label>
           </div>
@@ -263,7 +268,7 @@ export function AdminPage() {
         </form>
       </div>
 
-      <div className="card">
+      <div className="card admin-section">
         <h2>試合結果の入力</h2>
         <form onSubmit={saveMatchResult}>
           <div className="form-row">
@@ -316,7 +321,7 @@ export function AdminPage() {
         </form>
       </div>
 
-      <div className="card">
+      <div className="card admin-section">
         <h2>大会最終結果</h2>
         <form onSubmit={saveTournamentResult}>
           <div className="form-row">
@@ -378,16 +383,15 @@ function TeamPointsRow({
   const [points, setPoints] = useState(String(team.champion_points))
 
   return (
-    <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem', alignItems: 'center' }}>
-      <span style={{ minWidth: 120 }}>{team.name}</span>
+    <div className="admin-team-row">
+      <span className="admin-team-row__name">{team.name}</span>
       <input
         type="number"
         min={0}
         value={points}
         onChange={(e) => setPoints(e.target.value)}
-        style={{ width: 80 }}
       />
-      <button type="button" onClick={() => onSave(team.id, parseInt(points, 10))}>
+      <button type="button" className="secondary" onClick={() => onSave(team.id, parseInt(points, 10))}>
         保存
       </button>
     </div>

@@ -8,12 +8,18 @@ import {
 } from '../lib/matches'
 import { supabase } from '../lib/supabaseClient'
 import { useAppOutletContext } from '../hooks/useOutletContext'
+import { Alert } from '../components/ui/Alert'
+import { Badge } from '../components/ui/Badge'
+import { EmptyState } from '../components/ui/EmptyState'
+import { LoadingState } from '../components/ui/LoadingState'
+import { PageHeader } from '../components/ui/PageHeader'
 import { STAGE_LABELS } from '../types/app'
 import type { Match, MatchPrediction, MatchResult, Profile } from '../types/database'
 
 interface ListRow {
   profile: Profile
   displayText: string
+  isLocked: boolean
 }
 
 function buildRows(
@@ -35,16 +41,18 @@ function buildRows(
         displayText: pred
           ? formatMatchPredictionText(pred, match)
           : '未提出',
+        isLocked: false,
       }
     }
 
     if (!deadlinePassed) {
-      return { profile, displayText: '締切後に公開' }
+      return { profile, displayText: '締切後に公開', isLocked: true }
     }
 
     return {
       profile,
       displayText: pred ? formatMatchPredictionText(pred, match) : '未提出',
+      isLocked: false,
     }
   })
 }
@@ -117,48 +125,88 @@ export function MatchPredictionsListPage() {
     load()
   }, [profile.id])
 
-  if (loading) return <p>読み込み中…</p>
-  if (error) return <p className="error">{error}</p>
+  if (loading) return <LoadingState />
+  if (error) return <Alert variant="error">{error}</Alert>
 
   if (matches.length === 0) {
     return (
-      <div className="card">
-        <h2>日本戦予想一覧</h2>
-        <p className="muted">まだ試合が登録されていません。</p>
-      </div>
+      <>
+        <PageHeader title="日本戦予想一覧" />
+        <div className="card">
+          <EmptyState title="まだ試合が登録されていません" />
+        </div>
+      </>
     )
   }
 
   return (
     <>
-      <h2>日本戦予想一覧</h2>
+      <PageHeader
+        title="日本戦予想一覧"
+        description="締切前は本人の予想のみ確認できます"
+      />
+
       {matches.map((match) => (
         <div key={match.id} className="card match-section">
-          <h3>日本 vs {match.opponent_team_name}</h3>
-          <ul className="match-meta-list">
-            <li>ステージ: {STAGE_LABELS[match.stage] ?? match.stage}</li>
-            <li>試合日時: {formatDateTime(match.match_datetime)}</li>
-            <li>予想締切: {formatDateTime(match.prediction_deadline)}</li>
-            <li>受付: {getReceptionStatus(match.prediction_deadline)}</li>
-            <li>{getResultStatus(resultMatchIds.has(match.id))}</li>
-          </ul>
+          <div className="match-card__title">
+            <span className="match-card__teams">
+              日本 vs {match.opponent_team_name}
+            </span>
+            <Badge variant="default">
+              {STAGE_LABELS[match.stage] ?? match.stage}
+            </Badge>
+            <Badge variant={getReceptionStatus(match.prediction_deadline) === '受付中' ? 'success' : 'muted'}>
+              {getReceptionStatus(match.prediction_deadline)}
+            </Badge>
+            <Badge variant={resultMatchIds.has(match.id) ? 'gold' : 'default'}>
+              {getResultStatus(resultMatchIds.has(match.id))}
+            </Badge>
+          </div>
 
-          <table className="list-table">
-            <thead>
-              <tr>
-                <th>名前</th>
-                <th>予想</th>
-              </tr>
-            </thead>
-            <tbody>
-              {(rowsByMatch[match.id] ?? []).map(({ profile: p, displayText }) => (
-                <tr key={p.id}>
-                  <td>{p.display_name}</td>
-                  <td>{displayText}</td>
+          <div className="match-meta">
+            <div className="match-meta__item">
+              <span className="match-meta__label">試合日時</span>
+              <span className="match-meta__value">
+                {formatDateTime(match.match_datetime)}
+              </span>
+            </div>
+            <div className="match-meta__item">
+              <span className="match-meta__label">予想締切</span>
+              <span className="match-meta__value">
+                {formatDateTime(match.prediction_deadline)}
+              </span>
+            </div>
+          </div>
+
+          <div className="table-wrap">
+            <table className="list-table">
+              <thead>
+                <tr>
+                  <th>名前</th>
+                  <th>予想</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {(rowsByMatch[match.id] ?? []).map(({ profile: p, displayText, isLocked }) => (
+                  <tr
+                    key={p.id}
+                    className={p.id === profile.id ? 'row--self' : undefined}
+                  >
+                    <td>{p.display_name}</td>
+                    <td>
+                      {isLocked ? (
+                        <span className="prediction-locked">🔒 {displayText}</span>
+                      ) : displayText === '未提出' ? (
+                        <Badge variant="muted">{displayText}</Badge>
+                      ) : (
+                        displayText
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       ))}
     </>

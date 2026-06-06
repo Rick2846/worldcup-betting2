@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { AuthShell } from '../components/AuthShell'
+import { Alert } from '../components/ui/Alert'
 import { supabase } from '../lib/supabaseClient'
 
 export function LoginPage() {
@@ -62,10 +64,9 @@ export function LoginPage() {
   }
 
   return (
-    <div className="container">
-      <div className="card" style={{ maxWidth: 400, margin: '2rem auto' }}>
-        <h1>ログイン</h1>
-        <p className="muted">身内メンバー専用のワールドカップ予想サイトです。</p>
+    <AuthShell subtitle="メンバー専用の予想サイトです">
+      <div className="card">
+        <h2>ログイン</h2>
         <form onSubmit={handleSubmit}>
           <div className="form-row">
             <label htmlFor="email">メールアドレス</label>
@@ -90,12 +91,12 @@ export function LoginPage() {
               autoComplete="current-password"
             />
           </div>
-          {error && <p className="error">{error}</p>}
-          <button type="submit" disabled={loading}>
+          {error && <Alert variant="error">{error}</Alert>}
+          <button type="submit" disabled={loading} style={{ width: '100%' }}>
             {loading ? '処理中…' : 'ログイン'}
           </button>
         </form>
-        <p style={{ marginTop: '1rem' }}>
+        <div className="btn-group">
           <button
             type="button"
             className="secondary"
@@ -104,13 +105,13 @@ export function LoginPage() {
           >
             {sendingRecovery ? '送信中…' : 'パスワード再設定メールを送る'}
           </button>
-        </p>
+        </div>
         {recoverySent && (
-          <p className="muted">
+          <Alert variant="success">
             再設定用のメールを送信しました。メール内のリンクから新しいパスワードを設定してください。
-          </p>
+          </Alert>
         )}
       </div>
-    </div>
+    </AuthShell>
   )
 }

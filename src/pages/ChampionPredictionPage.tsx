@@ -1,5 +1,9 @@
 import { useEffect, useState } from 'react'
 import { ConfirmModal } from '../components/ConfirmModal'
+import { Alert } from '../components/ui/Alert'
+import { Badge } from '../components/ui/Badge'
+import { LoadingState } from '../components/ui/LoadingState'
+import { PageHeader } from '../components/ui/PageHeader'
 import { getActiveTournament } from '../lib/auth'
 import { supabase } from '../lib/supabaseClient'
 import { useAppOutletContext } from '../hooks/useOutletContext'
@@ -94,68 +98,92 @@ export function ChampionPredictionPage() {
 
   const selectedTeam = teams.find((t) => t.id === selectedTeamId)
 
-  if (loading) return <p>読み込み中…</p>
-  if (!tournament) return <p className="error">有効な大会が見つかりません</p>
+  if (loading) return <LoadingState />
+  if (!tournament) return <Alert variant="error">有効な大会が見つかりません</Alert>
 
   if (existing) {
     return (
-      <div className="card">
-        <h2>優勝国予想</h2>
-        <p>
-          あなたの優勝国予想：<strong>{existing.teams.name}</strong>
-        </p>
-        <p className="muted">
-          この予想は提出済みです。提出後の変更はできません。
-        </p>
-      </div>
+      <>
+        <PageHeader title="優勝国予想" description="提出済みの予想です" />
+        <div className="card card--submitted">
+          <Badge variant="success">提出済み</Badge>
+          <div className="confirmed-pick">
+            <span className="confirmed-pick__flag" aria-hidden="true">
+              🏆
+            </span>
+            <div>
+              <div className="confirmed-pick__name">{existing.teams.name}</div>
+              <div className="confirmed-pick__pts">
+                {existing.teams.champion_points}pt
+              </div>
+            </div>
+          </div>
+          <p className="muted">提出後の変更はできません。</p>
+        </div>
+      </>
     )
   }
 
   if (deadlinePassed) {
     return (
-      <div className="card">
-        <h2>優勝国予想</h2>
-        <p>予想受付は終了しました。あなたは優勝国予想を提出していません。</p>
-      </div>
+      <>
+        <PageHeader title="優勝国予想" />
+        <div className="card">
+          <Badge variant="muted">受付終了</Badge>
+          <p style={{ marginTop: '0.75rem' }}>
+            予想受付は終了しました。あなたは優勝国予想を提出していません。
+          </p>
+        </div>
+      </>
     )
   }
 
   return (
-    <div className="card">
-      <h2>優勝国予想</h2>
-      <p>優勝国を1つ選んでください（提出後は変更できません）。</p>
-
-      {teams.map((team) => (
-        <label key={team.id} className="team-option">
-          <input
-            type="radio"
-            name="team"
-            value={team.id}
-            checked={selectedTeamId === team.id}
-            onChange={() => setSelectedTeamId(team.id)}
-          />
-          {team.name}：{team.champion_points}pt
-        </label>
-      ))}
-
-      {error && <p className="error">{error}</p>}
-
-      <button
-        type="button"
-        disabled={!selectedTeamId}
-        onClick={() => setShowConfirm(true)}
-      >
-        予想を提出する
-      </button>
-
-      <ConfirmModal
-        open={showConfirm}
-        title="提出の確認"
-        message={`この予想は提出後に変更できません。\n本当に提出しますか？\n\n予想：${selectedTeam?.name ?? ''}`}
-        onConfirm={handleSubmit}
-        onCancel={() => setShowConfirm(false)}
-        loading={submitting}
+    <>
+      <PageHeader
+        title="優勝国予想"
+        description="優勝国を1つ選んでください。提出後は変更できません。"
       />
-    </div>
+
+      <div className="card">
+        <div className="team-grid">
+          {teams.map((team) => (
+            <label key={team.id} className="team-option">
+              <input
+                type="radio"
+                name="team"
+                value={team.id}
+                checked={selectedTeamId === team.id}
+                onChange={() => setSelectedTeamId(team.id)}
+              />
+              <span className="team-option__name">{team.name}</span>
+              <Badge variant="gold">{team.champion_points}pt</Badge>
+              <span className="team-option__check" aria-hidden="true">
+                ✓
+              </span>
+            </label>
+          ))}
+        </div>
+
+        {error && <Alert variant="error">{error}</Alert>}
+
+        <button
+          type="button"
+          disabled={!selectedTeamId}
+          onClick={() => setShowConfirm(true)}
+        >
+          予想を提出する
+        </button>
+
+        <ConfirmModal
+          open={showConfirm}
+          title="提出の確認"
+          message={`この予想は提出後に変更できません。\n本当に提出しますか？\n\n予想：${selectedTeam?.name ?? ''}`}
+          onConfirm={handleSubmit}
+          onCancel={() => setShowConfirm(false)}
+          loading={submitting}
+        />
+      </div>
+    </>
   )
 }

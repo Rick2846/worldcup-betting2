@@ -1,5 +1,11 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { SITE_CATCHCOPY } from '../constants/branding'
+import { Badge } from '../components/ui/Badge'
+import { EmptyState } from '../components/ui/EmptyState'
+import { LoadingState } from '../components/ui/LoadingState'
+import { Podium } from '../components/ui/Podium'
+import { StatCard } from '../components/ui/StatCard'
 import { getActiveTournament } from '../lib/auth'
 import {
   formatDateTime,
@@ -100,106 +106,158 @@ export function HomePage() {
     load()
   }, [profile.id])
 
-  if (loading) return <p>読み込み中…</p>
+  if (loading) return <LoadingState />
 
   const deadlinePassed = nextMatch
     ? isDeadlinePassed(nextMatch.prediction_deadline, now)
     : false
 
+  const receptionOpen =
+    nextMatch && !isDeadlinePassed(nextMatch.prediction_deadline, now)
+
   return (
     <>
-      <div className="card">
-        <h2>あなたの成績</h2>
-        {myRanking ? (
-          <p>
-            合計 <strong>{myRanking.totalPoints}pt</strong>
-            （優勝国 {myRanking.championPredictionPoints}pt / 日本戦{' '}
-            {myRanking.matchPredictionPoints}pt）
-          </p>
-        ) : (
-          <p className="muted">ランキングデータがありません</p>
-        )}
+      <div className="hero-banner">
+        <p className="hero-banner__catchcopy">{SITE_CATCHCOPY}</p>
+        <p className="hero-banner__greeting">{profile.display_name} さん、おかえりなさい</p>
       </div>
 
-      <div className="card">
-        <h2>ランキング上位</h2>
+      {myRanking && (
+        <div className="stat-grid">
+          <StatCard label="合計ポイント" value={`${myRanking.totalPoints}`} sub="pt" accent />
+          <StatCard
+            label="優勝国"
+            value={`${myRanking.championPredictionPoints}`}
+            sub="pt"
+          />
+          <StatCard
+            label="日本戦"
+            value={`${myRanking.matchPredictionPoints}`}
+            sub="pt"
+          />
+        </div>
+      )}
+
+      <div className="card" style={{ marginTop: '1rem' }}>
+        <h2>ランキング TOP 3</h2>
         {topRanking.length === 0 ? (
-          <p className="muted">まだデータがありません</p>
+          <EmptyState title="まだデータがありません" />
         ) : (
-          <ol>
-            {topRanking.map((r, i) => (
-              <li key={r.userId}>
-                {i + 1}位 {r.displayName} — {r.totalPoints}pt
-              </li>
-            ))}
-          </ol>
+          <>
+            <Podium
+              entries={topRanking.map((r, i) => ({
+                rank: i + 1,
+                name: r.displayName,
+                points: r.totalPoints,
+                highlight: r.userId === profile.id,
+              }))}
+            />
+            <Link to="/ranking" className="link-arrow">
+              全順位を見る
+            </Link>
+          </>
         )}
-        <p>
-          <Link to="/ranking">ランキングを見る →</Link>
-        </p>
       </div>
 
       {nextMatch ? (
-        <div className="card">
-          <h2>次の日本戦</h2>
-          <p>
-            <strong>
+        <div className="card card--featured">
+          <div className="match-card__title">
+            <span className="match-card__teams">
               日本 vs {nextMatch.opponent_team_name}
-            </strong>
-          </p>
-          <ul className="match-meta-list">
-            <li>ステージ: {STAGE_LABELS[nextMatch.stage] ?? nextMatch.stage}</li>
-            <li>試合日時: {formatDateTime(nextMatch.match_datetime)}</li>
-            <li>予想締切: {formatDateTime(nextMatch.prediction_deadline)}</li>
-            <li>締切まで: {getTimeUntilDeadline(nextMatch.prediction_deadline, now)}</li>
-            <li>
-              ステータス:{' '}
-              <strong>{getReceptionStatus(nextMatch.prediction_deadline)}</strong>
-              {' / '}
+            </span>
+            <Badge variant={receptionOpen ? 'success' : 'muted'}>
+              {getReceptionStatus(nextMatch.prediction_deadline)}
+            </Badge>
+            <Badge variant={nextMatchHasResult ? 'gold' : 'default'}>
               {getResultStatus(nextMatchHasResult)}
-            </li>
-          </ul>
+            </Badge>
+          </div>
 
-          <p>
-            あなたの予想：
+          <div className="match-meta">
+            <div className="match-meta__item">
+              <span className="match-meta__label">ステージ</span>
+              <span className="match-meta__value">
+                {STAGE_LABELS[nextMatch.stage] ?? nextMatch.stage}
+              </span>
+            </div>
+            <div className="match-meta__item">
+              <span className="match-meta__label">試合日時</span>
+              <span className="match-meta__value">
+                {formatDateTime(nextMatch.match_datetime)}
+              </span>
+            </div>
+            <div className="match-meta__item">
+              <span className="match-meta__label">予想締切</span>
+              <span className="match-meta__value">
+                {formatDateTime(nextMatch.prediction_deadline)}
+              </span>
+            </div>
+            <div className="match-meta__item">
+              <span className="match-meta__label">締切まで</span>
+              <span className="match-meta__value match-meta__value--countdown">
+                {getTimeUntilDeadline(nextMatch.prediction_deadline, now)}
+              </span>
+            </div>
+          </div>
+
+          <div className="submission-status__item">
+            <span className="submission-status__label">あなたの予想</span>
             {myMatchPred ? (
-              <strong> {formatMatchPredictionText(myMatchPred, nextMatch)}</strong>
+              <Badge variant="success">
+                {formatMatchPredictionText(myMatchPred, nextMatch)}
+              </Badge>
             ) : deadlinePassed ? (
-              <strong> 未提出（締切済み）</strong>
+              <Badge variant="danger">未提出（締切済み）</Badge>
             ) : (
-              <>
-                <strong> 未提出</strong>
-                <br />
-                <Link to="/matches" className="btn" style={{ marginTop: '0.5rem' }}>
-                  この試合を予想する
-                </Link>
-              </>
+              <Badge variant="warning">未提出</Badge>
             )}
-          </p>
+          </div>
+
+          {!myMatchPred && !deadlinePassed && (
+            <div className="btn-group">
+              <Link to="/matches" className="btn">
+                この試合を予想する
+              </Link>
+            </div>
+          )}
         </div>
       ) : (
         <div className="card">
           <h2>次の日本戦</h2>
-          <p className="muted">まだ試合が登録されていません。</p>
+          <EmptyState
+            title="まだ試合が登録されていません"
+            description="管理者が試合を追加するまでお待ちください"
+          />
         </div>
       )}
 
       <div className="card">
         <h2>提出状況</h2>
-        <p>
-          優勝国予想：{' '}
-          {myChampion ? (
-            <strong>提出済み</strong>
-          ) : (
-            <Link to="/champion">未提出 — 予想する</Link>
-          )}
-        </p>
-        <p>
-          <Link to="/matches/list">日本戦予想一覧を見る →</Link>
-        </p>
+        <div className="submission-status">
+          <div className="submission-status__item">
+            <span className="submission-status__label">優勝国予想</span>
+            {myChampion ? (
+              <Badge variant="success">提出済み</Badge>
+            ) : (
+              <Link to="/champion" className="btn btn--ghost">
+                予想する
+              </Link>
+            )}
+          </div>
+          <div className="submission-status__item">
+            <span className="submission-status__label">日本戦一覧</span>
+            <Link to="/matches/list" className="link-arrow">
+              全員の予想を見る
+            </Link>
+          </div>
+        </div>
       </div>
 
-      {tournament && <p className="muted">大会: {tournament.name}</p>}
+      {tournament && (
+        <p className="muted" style={{ textAlign: 'center', marginTop: '0.5rem' }}>
+          大会: {tournament.name}
+        </p>
+      )}
     </>
   )
 }

@@ -4,6 +4,7 @@ import type { Session } from '@supabase/supabase-js'
 import { getProfile } from '../lib/auth'
 import { supabase } from '../lib/supabaseClient'
 import { Layout } from './Layout'
+import { LoadingState } from './ui/LoadingState'
 import type { Profile } from '../types/database'
 
 export function ProtectedRoute() {
@@ -35,11 +36,7 @@ export function ProtectedRoute() {
   }, [session])
 
   if (session === undefined) {
-    return (
-      <div className="container">
-        <p>読み込み中…</p>
-      </div>
-    )
+    return <LoadingState />
   }
 
   if (!session) {
@@ -47,11 +44,7 @@ export function ProtectedRoute() {
   }
 
   if (!profile) {
-    return (
-      <div className="container">
-        <p>プロフィールを読み込み中…</p>
-      </div>
-    )
+    return <LoadingState label="プロフィールを読み込み中…" />
   }
 
   async function refreshProfile() {

@@ -20,10 +20,10 @@ export function ConfirmModal({
   if (!open) return null
 
   return (
-    <div className="modal-backdrop" role="dialog" aria-modal="true">
+    <div className="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="confirm-title">
       <div className="modal">
-        <h2>{title}</h2>
-        <p>{message}</p>
+        <h2 id="confirm-title">{title}</h2>
+        <p className="modal__message">{message}</p>
         <div className="modal-actions">
           <button type="button" onClick={onConfirm} disabled={loading}>
             {loading ? '送信中…' : confirmLabel}
