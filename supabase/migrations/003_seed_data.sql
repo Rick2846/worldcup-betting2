@@ -6,7 +6,12 @@ insert into teams (name, champion_points) values
   ('アルゼンチン', 105),
   ('ポルトガル', 130),
   ('ドイツ', 160),
-  ('オランダ', 180);
+  ('オランダ', 180),
+  ('クロアチア', 210),
+  ('ベルギー', 230),
+  ('モロッコ', 260),
+  ('日本', 300),
+  ('ノルウェー', 350);
 
 insert into tournaments (name, champion_prediction_deadline, is_active)
 values (
